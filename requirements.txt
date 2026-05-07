@@ -5,4 +5,7 @@ seaborn
 scikit-learn
 xgboost
 joblib
-jupyter
+fastapi
+uvicorn
+pytest
+dvc[s3]

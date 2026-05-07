@@ -1,0 +1,87 @@
+name: Heart Disease ML CI/CD Pipeline
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+env:
+  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
+
+jobs:
+  test-and-retrain:
+    runs-on: ubuntu-latest
+
+    steps:
+      # ── Step 1: Checkout code ────────────────────────────────
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # ── Step 2: Set up Python ────────────────────────────────
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+
+      # ── Step 3: Install dependencies ─────────────────────────
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install dvc[s3] pytest
+
+      # ── Step 4: Pull data from S3 via DVC ────────────────────
+      - name: Pull data and model from S3
+        run: dvc pull
+
+      # ── Step 5: Run tests BEFORE retraining ──────────────────
+      - name: Run pytest (pre-train validation)
+        run: pytest tests/ -v --tb=short
+
+      # ── Step 6: Detect if retraining is needed ───────────────
+      - name: Check if retraining is needed
+        id: detect_changes
+        run: |
+          if git diff --name-only HEAD~1 HEAD | grep -E "^(src/|data/.*\.dvc|models/.*\.dvc)"; then
+            echo "retrain=true" >> $GITHUB_OUTPUT
+            echo "Retraining triggered!"
+          else
+            echo "retrain=false" >> $GITHUB_OUTPUT
+            echo "No retraining needed"
+          fi
+
+      # ── Step 7: Retrain model ─────────────────────────────────
+      - name: Retrain model
+        if: steps.detect_changes.outputs.retrain == 'true'
+        run: |
+          python src/train.py
+          echo "Model retrained successfully"
+
+      # ── Step 8: Run tests AFTER retraining ───────────────────
+      - name: Run pytest (post-retrain validation)
+        if: steps.detect_changes.outputs.retrain == 'true'
+        run: pytest tests/ -v --tb=short
+
+      # ── Step 9: Push retrained model back to S3 ──────────────
+      - name: Push retrained model to S3
+        if: steps.detect_changes.outputs.retrain == 'true'
+        run: dvc push
+
+      # ── Step 10: Upload model as GitHub artifact ──────────────
+      - name: Upload model artifact
+        if: steps.detect_changes.outputs.retrain == 'true'
+        uses: actions/upload-artifact@v3
+        with:
+          name: retrained-model
+          path: models/best_model.pkl
+
+      # ── Step 11: Save results report ─────────────────────────
+      - name: Upload results report
+        if: steps.detect_changes.outputs.retrain == 'true'
+        uses: actions/upload-artifact@v3
+        with:
+          name: model-results
+          path: reports/model_results.csv
