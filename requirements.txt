@@ -9,3 +9,5 @@ fastapi
 uvicorn
 pytest
 dvc[s3]
+streamlit
+requests

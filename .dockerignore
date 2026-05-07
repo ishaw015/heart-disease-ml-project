@@ -1,0 +1,11 @@
+venv/
+.git/
+.dvc/cache/
+.dvc/tmp/
+__pycache__/
+*.pyc
+.env
+notebooks/
+.github/
+*.dvc
+.gitignore
