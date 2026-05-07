@@ -24,9 +24,9 @@ data/heart.csv
 data/heart_clean.csv
 *.csv
 
-# Models (tracked by DVC)
-models/
-*.pkl
+# Models - ignore actual pkl files, but allow .dvc pointer files
+models/*.pkl
+!models/*.pkl.dvc
 
 # DVC internals
 .dvc/cache/
