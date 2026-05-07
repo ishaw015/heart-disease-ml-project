@@ -52,7 +52,9 @@ models = {
     ),
 
     'Random Forest': RandomForestClassifier(
-        n_estimators=100,
+        n_estimators=150,
+        max_depth=10,
+        min_samples_split=5,
         random_state=42
     ),
 
