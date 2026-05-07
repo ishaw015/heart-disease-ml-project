@@ -1,4 +1,5 @@
 [core]
     remote = myremote
 ['remote "myremote"']
-    url = gdrive://17kT2V0PrnWy7VNJlnNsKX01IiyLo1wup
+    url = s3://heart-disease-dvc-remote/dvcstore
+    region = ap-south-1

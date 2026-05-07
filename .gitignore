@@ -1,5 +1,3 @@
-# .gitignore
-
 # Python
 __pycache__/
 *.py[cod]
@@ -31,6 +29,7 @@ models/*.pkl
 # DVC internals
 .dvc/cache/
 .dvc/tmp/
+.dvc/config.local
 
 # OS
 .DS_Store
@@ -39,3 +38,6 @@ Thumbs.db
 # IDEs
 .vscode/
 .idea/
+
+# AWS credentials
+service-account.json
