@@ -48,3 +48,7 @@ def create_preprocessor():
     )
 
     return preprocessor
+
+# alias so tests and pipeline can use standard name
+def build_preprocessor():
+    return create_preprocessor()
